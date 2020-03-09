@@ -1,5 +1,26 @@
-const util = require('util')
+const util = require("util");
 const request = require("request");
+
+let patterns = [
+  process.argv[2] + ",",
+  process.argv[2] + " ,",
+  ": " + process.argv[2],
+  ":" + process.argv[2],
+  ", " + process.argv[2],
+  "," + process.argv[2],
+];
+
+function resolve_patterns(text) {
+  for (let element = 0; element <= patterns.length; element++) {
+    if (text.indexOf(patterns[element]) > -1) {
+      let index = text.indexOf(patterns[element]) + patterns[element].length;
+      if (!(text[index] == "(" || text[index + 1] == "(")) { // überprüfen ob (ausgeschieden) oder (nicht geschafft) hinter namen steht
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
 async function get_thread_links() {
   let link = "http://forum.gamescampus.eu/forumdisplay.php?380-Teamplay-Forum";
@@ -31,7 +52,6 @@ async function get_thread_links() {
   return list_teamplays;
 }
 
-
 async function search_for_player() {
   let list_teamplays = await get_thread_links();
   let results = [];
@@ -43,8 +63,8 @@ async function search_for_player() {
     for (let page_counter = 1; page_counter <= page_max; page_counter++) {
       const requestPromise = util.promisify(request);
       const response = await requestPromise(list_teamplays[i].link + page_counter);
-      if (response.body.indexOf(process.argv[2]) > -1) {
-        console.log("Gefunden auf Seite "+page_counter);
+      if (resolve_patterns(response.body)) {
+        console.log("Gefunden auf Seite " + page_counter);
         list_teamplays[i].state = "O";
         break;
       }
