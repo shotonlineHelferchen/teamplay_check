@@ -1,13 +1,16 @@
 const util = require("util");
 const request = require("request");
+const readlineSync = require('readline-sync');
+
+var userName = readlineSync.question('Bitte gebe deinen Usernamen ein!\n');
 
 let patterns = [
-  process.argv[2] + ",",
-  process.argv[2] + " ,",
-  ": " + process.argv[2],
-  ":" + process.argv[2],
-  ", " + process.argv[2],
-  "," + process.argv[2],
+  userName + ",",
+  userName + " ,",
+  ": " + userName,
+  ":" + userName,
+  ", " + userName,
+  "," + userName,
 ];
 
 function resolve_patterns(text) {
@@ -56,7 +59,7 @@ async function search_for_player() {
   let list_teamplays = await get_thread_links();
   let results = [];
   for (let i = 0; i < list_teamplays.length; i++) {
-    console.log("Suche in " + list_teamplays[i].course + " " + list_teamplays[i].type + " nach Spieler " + process.argv[2]);
+    console.log("Durchsuche " + list_teamplays[i].course + " " + list_teamplays[i].type + " Thread");
     const requestPromise = util.promisify(request);
     const response = await requestPromise(list_teamplays[i].link + 1);
     let page_max = response.body[response.body.indexOf("Seite 1 von") + 12];
@@ -69,14 +72,12 @@ async function search_for_player() {
         break;
       }
     }
-    if (results[list_teamplays[i].course] == undefined) {
-      results[list_teamplays[i].course] = {};
-    }
-    results[list_teamplays[i].course][list_teamplays[i].type] = list_teamplays[i].state;
+    results.push(list_teamplays[i].course+" "+list_teamplays[i].type+": "+list_teamplays[i].state);
   }
   console.log("\nO = geschafft");
   console.log("X = nicht geschafft\n");
-  console.log(results);
+  results.map(x => console.log(x));
+
 }
 
-search_for_player();
+search_for_player(); 
